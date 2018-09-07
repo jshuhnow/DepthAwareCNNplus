@@ -1,0 +1,5 @@
+tensorboardX
+dominate
+scipy
+h5py
+opencv-python
