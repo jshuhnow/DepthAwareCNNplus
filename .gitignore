@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# Backupfiles
+*.swp
+
+### Large dataset files ####
+# NYU
+data/nyuv2/nyu_depth_v2_labeled.mat
+
+### End of large dataset ###
