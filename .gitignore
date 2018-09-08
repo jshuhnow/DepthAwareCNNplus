@@ -34,8 +34,17 @@
 # Backupfiles
 *.swp
 
+### Python ###
+__pycache__
+### End of Python ### 
+
+
 ### Large dataset files ####
 # NYU
 data/nyuv2/nyu_depth_v2_labeled.mat
 
 ### End of large dataset ###
+
+### After running scripts ###
+checkpoints/
+lists/
