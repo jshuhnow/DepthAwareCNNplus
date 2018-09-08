@@ -1,4 +1,4 @@
-python test.py \
+python3 test.py \
 --gpu_ids 2 \
 --name nyuv2_VGGdeeplab_depthconv \
 --dataset_mode nyuv2 \

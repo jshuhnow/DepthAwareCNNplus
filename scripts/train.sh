@@ -1,4 +1,4 @@
-python train.py \
+python3 train.py \
 --name nyuv2_VGGdeeplab_depthconv \
 --dataset_mode nyuv2 \
 --flip --scale --crop --colorjitter \
