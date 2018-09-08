@@ -3,3 +3,4 @@ dominate
 scipy
 h5py
 opencv-python
+progressbar
