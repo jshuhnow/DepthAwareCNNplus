@@ -49,7 +49,6 @@ class NYUDataset(BaseDataset):
         HHA = np.asarray(Image.open(self.paths_dict['HHAs'][index]))
         seg = np.asarray(Image.open(self.paths_dict['segs'][index])).astype(np.uint8)
 
-
         params = get_params(self.opt, seg.shape)
         depth_tensor_tranformed = transform(depth, params, normalize=False,istrain=self.opt.isTrain)
         seg_tensor_tranformed = transform(seg, params, normalize=False,method='nearest',istrain=self.opt.isTrain)
@@ -60,10 +59,6 @@ class NYUDataset(BaseDataset):
             img_tensor_tranformed = transform(img, params, istrain=self.opt.isTrain, option=1)
             HHA_tensor_tranformed = transform(HHA, params, istrain=self.opt.isTrain, option=2)
 
-
-        # print img_tensor_tranformed
-        # print(np.unique(depth_tensor_tranformed.numpy()).shape)
-        # print img_tensor_tranformed.size()
         return {'image':img_tensor_tranformed,
                 'depth':depth_tensor_tranformed,
                 'seg': seg_tensor_tranformed,
