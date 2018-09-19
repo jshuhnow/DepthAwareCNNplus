@@ -1,4 +1,4 @@
-from model_utils import *
+from .model_utils import *
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 import math
@@ -161,6 +161,7 @@ class VGG_layer2(nn.Module):
             x = self.conv4_1(x)
         x = self.conv4_2(x)
         x = self.conv4_3(x)
+
         if self.depthconv:
             x = self.conv5_1(x, self.conv5_1_depthconvweight * depth)
         else:
@@ -222,20 +223,24 @@ class VGG_layer(nn.Module):
         self.pool5a_d = Depthavgpooling(kernel_size=3, stride=1,padding=1)
 
     def forward(self, x, depth=None):
-        # print x.size()
+        print('origin : ' + str(x.shape))
         if self.depthconv:
             # print self.conv1_1_depthconvweight
             x = self.conv1_1(x,self.conv1_1_depthconvweight * depth)
         else:
             x = self.conv1_1(x)
         x = self.conv1_2(x)
+        
+        #print('after conv1 : ' + str(x.shape))
+
         if self.depthconv:
             depth = self.downsample_depth2_1(depth)
             x = self.conv2_1(x, self.conv2_1_depthconvweight * depth)
         else:
             x = self.conv2_1(x)
-        # print 'xxxxxx',x.size()
         x = self.conv2_2(x)
+        
+        # print('after conv2 : ' + str(x.shape))
         if self.depthconv:
             depth = self.downsample_depth3_1(depth)
             x = self.conv3_1(x, self.conv3_1_depthconvweight * depth)
@@ -243,6 +248,8 @@ class VGG_layer(nn.Module):
             x = self.conv3_1(x)
         x = self.conv3_2(x)
         x = self.conv3_3(x)
+        
+        # print('after conv3 : ' + str(x.shape))
         if self.depthconv:
             depth = self.downsample_depth4_1(depth)
             # print (depth.mean(),depth.max(),depth.min())
@@ -252,6 +259,8 @@ class VGG_layer(nn.Module):
             x = self.conv4_1(x)
         x = self.conv4_2(x)
         x = self.conv4_3(x)
+        
+        # print('after conv4 : ' + str(x.shape))
         if self.depthconv:
             x = self.conv5_1(x, self.conv5_1_depthconvweight * depth)
         else:
@@ -263,6 +272,9 @@ class VGG_layer(nn.Module):
             x = self.pool5a_d(x,depth)
         else:
             x = self.pool5a(x)
+    
+        
+        # print('after conv5 : ' + str(x.shape))
 
         return x, depth
 
@@ -286,55 +298,41 @@ def make_layers(cfg, depth_cfg=[], batch_norm=False, depthconv=False):
 
 class Classifier_Module(nn.Module):
 
-    def __init__(self, num_classes, inplanes, depthconv=False):
+    def __init__(self, num_classes, inplanes, depthconv=False, num_feature=256):
         super(Classifier_Module, self).__init__()
         # [6, 12, 18, 24]
         self.depthconv = depthconv
+
+        
+        self.fc6_0 = nn.Conv2d(inplaces, num_feature, kernel_size=1, stride=1, bias=True)  # fc6_0
+
         if depthconv:
             self.fc6_1_depthconvweight = 1.#nn.Parameter(torch.ones(1))
-            self.fc6_1 = DepthConv(inplanes, 1024, kernel_size=3, stride=1, padding=6, dilation=6)  # fc6
+            self.fc6_1 = DepthConv(inplanes, num_feature, kernel_size=3, stride=1, padding=6, dilation=6, bn=batch_norm)  # fc6
         else:
-            self.fc6_1 = nn.Conv2d(inplanes, 1024, kernel_size=3, stride=1, padding=6, dilation=6)  # fc6
-
-        self.fc7_1 = nn.Sequential(
-            *[nn.ReLU(True), nn.Dropout(),
-              nn.Conv2d(1024, 1024, kernel_size=1, stride=1), nn.ReLU(True), nn.Dropout()])  # fc7
-        self.fc8_1 = nn.Conv2d(1024, num_classes, kernel_size=1, stride=1, bias=True)  # fc8
+            self.fc6_1 = nn.Conv2d(inplanes, num_feature, kernel_size=3, stride=1, padding=6, dilation=6, bn=batch_norm)  # fc6
 
         if depthconv:
             self.fc6_2_depthconvweight = 1.#nn.Parameter(torch.ones(1))
-            self.fc6_2 = DepthConv(inplanes, 1024, kernel_size=3, stride=1, padding=12, dilation=12)  # fc6
+            self.fc6_2 = DepthConv(inplanes, num_feature, kernel_size=3, stride=1, padding=12, dilation=12, bn=batch_norm)  # fc6
         else:
-            self.fc6_2 = nn.Conv2d(inplanes, 1024, kernel_size=3, stride=1, padding=12, dilation=12)  # fc6
-
-        self.fc7_2 = nn.Sequential(
-            *[nn.ReLU(True), nn.Dropout(),
-              nn.Conv2d(1024, 1024, kernel_size=1, stride=1), nn.ReLU(True), nn.Dropout()])  # fc7
-        self.fc8_2 = nn.Conv2d(1024, num_classes, kernel_size=1, stride=1, bias=True)  # fc8
+            self.fc6_2 = nn.Conv2d(inplanes, num_feature, kernel_size=3, stride=1, padding=12, dilation=12, bn=batch_norm)  # fc6
 
         if depthconv:
             self.fc6_3_depthconvweight = 1.#nn.Parameter(torch.ones(1))
-            self.fc6_3 = DepthConv(inplanes, 1024, kernel_size=3, stride=1, padding=18, dilation=18)  # fc6
+            self.fc6_3 = DepthConv(inplanes, num_feature, kernel_size=3, stride=1, padding=18, dilation=18, bn=batch_norm)  # fc6
         else:
-            self.fc6_3 = nn.Conv2d(inplanes, 1024, kernel_size=3, stride=1, padding=18, dilation=18)  # fc6
-
-        self.fc7_3 = nn.Sequential(
-            *[nn.ReLU(True), nn.Dropout(),
-              nn.Conv2d(1024, 1024, kernel_size=1, stride=1), nn.ReLU(True), nn.Dropout()])  # fc7
-        self.fc8_3 = nn.Conv2d(1024, num_classes, kernel_size=1, stride=1, bias=True)  # fc8
+            self.fc6_3 = nn.Conv2d(inplanes, num_feature, kernel_size=3, stride=1, padding=18, dilation=18, bn=batch_norm)  # fc6
 
         if depthconv:
-            self.fc6_4_depthconvweight = 1.#nn.Parameter(torch.ones(1))
-            self.fc6_4 = DepthConv(inplanes, 1024, kernel_size=3, stride=1, padding=24, dilation=24)  # fc6
-        else:
-            self.fc6_4 = nn.Conv2d(inplanes, 1024, kernel_size=3, stride=1, padding=24, dilation=24)  # fc6
+            self.fc6_4_depthconvweight = 1.
+            self.fc6_4 = DepthConv(3, num_feature, kernel_size=3, bn=batch_norm)
 
-        self.fc7_4 = nn.Sequential(
-            *[nn.ReLU(True), nn.Dropout(),
-              nn.Conv2d(1024, 1024, kernel_size=1, stride=1), nn.ReLU(True), nn.Dropout()])  # fc7
-        self.fc8_4 = nn.Conv2d(1024, num_classes, kernel_size=1, stride=1, bias=True)  # fc8
-
+        self.fc7 = nn.Conv2d(num_feature * 5, num_feature, kernel_size=1, stride=1, bias=True, bn=batch_norm)
+        self.fc8 = nn.Conv2d(num_feature, num_class, kernel_size=1, stride=1, bias=True, bn=batch_norm)
+    
     def forward(self, x, depth=None):
+        out0 = self.fc_0(x)
         if self.depthconv:
             out1 = self.fc6_1(x, self.fc6_1_depthconvweight * depth)
         else:
@@ -353,17 +351,13 @@ class Classifier_Module(nn.Module):
             out3 = self.fc6_3(x, self.fc6_3_depthconvweight * depth)
         else:
             out3 = self.fc6_3(x)
-        out3 = self.fc7_3(out3)
-        out3 = self.fc8_3(out3)
+        
+        out6 = torch.cat([out0, out1, out2, out3], 1)
+        
+        out7 = self.fc7(x)
+        out8 = self.fc8(x)
 
-        if self.depthconv:
-            out4 = self.fc6_4(x, self.fc6_4_depthconvweight * depth)
-        else:
-            out4 = self.fc6_4(x)
-        out4 = self.fc7_4(out4)
-        out4 = self.fc8_4(out4)
-
-        return out1+out2+out3+out4
+        return out8
 
 class Classifier_Module2(nn.Module):
 
@@ -420,8 +414,9 @@ class VGG(nn.Module):
 
     def __init__(self, num_classes=20, init_weights=True, depthconv=False,bn=False):
         super(VGG, self).__init__()
+
         self.features = VGG_layer(batch_norm=bn,depthconv=depthconv)
-        self.classifier = Classifier_Module2(num_classes,512,depthconv=depthconv)
+        self.classifier = Classifier_Module(num_classes,512,depthconv=depthconv)
 
         if init_weights:
             self._initialize_weights()

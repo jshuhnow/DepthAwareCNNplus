@@ -11,7 +11,7 @@ from torch.autograd import Variable
 from collections import OrderedDict
 from tensorboardX import SummaryWriter
 import os
-import VGG_Deeplab as VGG_Deeplab
+from . import VGG_Deeplab
 
 
 class Deeplab_VGG(nn.Module):
@@ -90,7 +90,6 @@ class Deeplab_Solver(BaseModel):
             self.seggt = None
 
         input_size = self.image.size()
-
         self.segpred = self.model(self.image,self.depth)
         self.segpred = nn.functional.upsample(self.segpred, size=(input_size[2], input_size[3]), mode='bilinear')
         # self.segpred = nn.functional.log_softmax(nn.functional.upsample(self.segpred, size=(input_size[2], input_size[3]), mode='bilinear'))
@@ -98,7 +97,8 @@ class Deeplab_Solver(BaseModel):
         if self.opt.isTrain:
             self.loss = self.criterionSeg(self.segpred, torch.squeeze(self.seggt,1).long())
             self.averageloss += [self.loss.data[0]]
-
+#           self.averageloss += [self.loss.item()]
+        
         segpred = self.segpred.max(1, keepdim=True)[1]
         return self.seggt, segpred
 
@@ -171,11 +171,11 @@ class Deeplab_Solver(BaseModel):
         # lr = self.old_lr * drop_ratio
 
         self.writer.add_scalar(self.opt.name+'/Learning_Rate/', lr, step)
-
-	self.optimizer.param_groups[0]['lr'] = lr
-	self.optimizer.param_groups[1]['lr'] = lr
-	self.optimizer.param_groups[2]['lr'] = lr
-	self.optimizer.param_groups[3]['lr'] = lr
+        
+        self.optimizer.param_groups[0]['lr'] = lr
+        self.optimizer.param_groups[1]['lr'] = lr
+        self.optimizer.param_groups[2]['lr'] = lr
+        self.optimizer.param_groups[3]['lr'] = lr
 	# self.optimizer.param_groups[0]['lr'] = lr
 	# self.optimizer.param_groups[1]['lr'] = lr*10
 	# self.optimizer.param_groups[2]['lr'] = lr*2 #* 100
@@ -185,9 +185,7 @@ class Deeplab_Solver(BaseModel):
 
         # torch.nn.utils.clip_grad_norm(self.model.Scale.get_1x_lr_params_NOscale(), 1.)
         # torch.nn.utils.clip_grad_norm(self.model.Scale.get_10x_lr_params(), 1.)
-
         if self.opt.verbose:
             print('     update learning rate: %f -> %f' % (self.old_lr, lr))
+
         self.old_lr = lr
-
-
