@@ -14,8 +14,19 @@ mkdir -p $NYU_PATH
 #$DOWNLOADER $DOWNLOADER_PARAM $NYU_PATH $NYU_DATASET
 
 cd $NYU_PATH 
-$PYTHON_EXECUTABLE preprocess.py
+#$PYTHON_EXECUTABLE preprocess.py
 cd $cwd
+
+SUNRGBD_PATH="../data/sunrgbd"
+SUNRGBD_DATASET="http://3dvision.princeton.edu/projects/2015/SUNrgbd/data/SUNRGBD.zip"
+
+cd "$(dirname ${BASH_SOURCE[0]})"
+mkdir -p $SUNRGBD_PATH
+#$DOWNLOADER $DOWNLOADER_PARAM $SUNRGBD_PATH $SUNRGBD_DATASET
+cd $SUNRGBD_PATH 
+unzip "SUNRGBD.zip"
+$PYTHON_EXECUTABLE preprocess.py
+cd $cwd 
 
 bash ../models/ops/depthavgpooling/make.sh
 bash ../models/ops/depthconv/make.sh
