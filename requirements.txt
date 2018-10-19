@@ -1,3 +1,6 @@
+torch
+torchvision
+cffi
 tensorboardX
 dominate
 scipy
