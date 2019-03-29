@@ -5,7 +5,7 @@
 $ pip install -r requirements.txt
 ```
 
-The depth-aware convolution and depth-aware average pooling operations are under folder `models/ops`, to build them, simply use `sh make.sh` to compile.
+The depth-aware convolution and depth-aware average pooling operations are under folder `models/ops`, to build them, simply use `sh scripts/make.sh` to compile.
 
 ### Training
 
